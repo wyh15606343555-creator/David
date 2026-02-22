@@ -16,14 +16,27 @@ import io
 import calendar
 
 
-def format_number(x):
-    """格式化数字：整数用千分符，浮点保留2位小数"""
-    if pd.isna(x):
+def format_cell(x):
+    """格式化单元格：数字加千分符，空值变空字符串"""
+    if x is None or (isinstance(x, float) and pd.isna(x)):
         return ""
+    # 原生数字类型
     if isinstance(x, (int, float)):
         if float(x) == int(x):
             return f"{int(x):,d}"
         return f"{x:,.2f}"
+    # 字符串类型：尝试解析为数字（处理Excel读成object的情况）
+    if isinstance(x, str):
+        s = x.strip()
+        if not s:
+            return ""
+        try:
+            num = float(s)
+            if num == int(num):
+                return f"{int(num):,d}"
+            return f"{num:,.2f}"
+        except (ValueError, OverflowError):
+            pass
     return str(x)
 
 
@@ -46,13 +59,9 @@ def prepare_for_display(df):
         if display_df[col].dtype == object:
             display_df[col] = display_df[col].ffill()
 
-    # 数字列千分符格式化
+    # 逐单元格格式化（不依赖列类型，逐个值判断）
     for col in display_df.columns:
-        if pd.api.types.is_numeric_dtype(display_df[col]):
-            display_df[col] = display_df[col].apply(format_number)
-
-    # 剩余空值替换为空字符串
-    display_df = display_df.fillna("")
+        display_df[col] = display_df[col].apply(format_cell)
 
     return display_df
 
