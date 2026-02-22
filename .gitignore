@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+data/platform.db
+data/*.xls
+data/*.xlsx
+data/*.csv
+output/
+mappings/*.json
+.DS_Store
