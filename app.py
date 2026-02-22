@@ -16,6 +16,30 @@ import io
 import calendar
 
 
+def get_api_key(key_name: str) -> str | None:
+    """安全读取 API Key — 优先级：Streamlit Secrets > 环境变量 > .env 文件
+    绝不在代码中硬编码密钥。"""
+    # 1. Streamlit Cloud Secrets（生产环境）
+    try:
+        return st.secrets[key_name]
+    except (KeyError, FileNotFoundError):
+        pass
+    # 2. 系统环境变量
+    val = os.environ.get(key_name)
+    if val:
+        return val
+    # 3. 本地 .env 文件（开发环境兜底）
+    env_path = Path(__file__).parent / ".env"
+    if env_path.exists():
+        for line in env_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                if k.strip() == key_name:
+                    return v.strip()
+    return None
+
+
 def format_cell(x):
     """格式化单元格：数字加千分符，空值变空字符串"""
     if x is None or (isinstance(x, float) and pd.isna(x)):
