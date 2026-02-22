@@ -15,6 +15,48 @@ from pathlib import Path
 import io
 import calendar
 
+
+def format_number(x):
+    """格式化数字：整数用千分符，浮点保留2位小数"""
+    if pd.isna(x):
+        return ""
+    if isinstance(x, (int, float)):
+        if float(x) == int(x):
+            return f"{int(x):,d}"
+        return f"{x:,.2f}"
+    return str(x)
+
+
+def prepare_for_display(df):
+    """准备DataFrame用于展示：处理合并单元格、Unnamed列名、千分符"""
+    display_df = df.copy()
+
+    # 处理 Unnamed 列名 → 替换为 "列1", "列2" ...
+    new_cols = []
+    for i, c in enumerate(display_df.columns):
+        s = str(c)
+        if s.startswith("Unnamed"):
+            new_cols.append(f"列{i + 1}")
+        else:
+            new_cols.append(s)
+    display_df.columns = new_cols
+
+    # 合并单元格修复：文本列前向填充
+    for col in display_df.columns:
+        if display_df[col].dtype == object:
+            display_df[col] = display_df[col].ffill()
+
+    # 数字列千分符格式化
+    for col in display_df.columns:
+        if pd.api.types.is_numeric_dtype(display_df[col]):
+            display_df[col] = display_df[col].apply(format_number)
+
+    # 剩余空值替换为空字符串
+    display_df = display_df.fillna("")
+
+    return display_df
+
+
 # ── 路径配置 ──
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
@@ -362,7 +404,7 @@ elif page == "📤 数据上传":
                     "Sheet名称": name,
                     "行数": len(df),
                     "列数": len(df.columns),
-                    "列名": ", ".join([str(c) for c in df.columns[:5]]) + ("..." if len(df.columns) > 5 else ""),
+                    "列名": ", ".join([(str(c) if not str(c).startswith("Unnamed") else f"列{j+1}") for j, c in enumerate(df.columns[:5])]) + ("..." if len(df.columns) > 5 else ""),
                 })
             st.dataframe(pd.DataFrame(sheet_info), use_container_width=True, hide_index=True)
 
@@ -371,20 +413,7 @@ elif page == "📤 数据上传":
             selected_sheet = st.selectbox("选择Sheet查看", list(df_dict.keys()))
             if selected_sheet:
                 df_preview = df_dict[selected_sheet]
-                st.dataframe(df_preview.head(50), use_container_width=True, height=400)
-
-                # 列信息
-                with st.expander("查看列详情"):
-                    col_info = []
-                    for col in df_preview.columns:
-                        col_info.append({
-                            "列名": str(col),
-                            "数据类型": str(df_preview[col].dtype),
-                            "非空数": int(df_preview[col].notna().sum()),
-                            "空值数": int(df_preview[col].isna().sum()),
-                            "示例值": str(df_preview[col].dropna().iloc[0]) if df_preview[col].notna().any() else "—",
-                        })
-                    st.dataframe(pd.DataFrame(col_info), use_container_width=True, hide_index=True)
+                st.dataframe(prepare_for_display(df_preview.head(50)), use_container_width=True, height=400)
 
             # 保存按钮
             st.markdown("---")
@@ -892,12 +921,12 @@ elif page == "💾 数据管理":
                                     st.caption(f"列数：{len(df.columns)}")
                                 with c3:
                                     st.caption(f"数据类型：{', '.join(df.dtypes.astype(str).unique()[:4])}")
-                                st.dataframe(df, use_container_width=True, height=500)
+                                st.dataframe(prepare_for_display(df), use_container_width=True, height=500)
                     else:
                         sn = sheet_names[0]
                         df = df_dict[sn]
                         st.caption(f"Sheet: {sn} — {len(df):,} 行 × {len(df.columns)} 列")
-                        st.dataframe(df, use_container_width=True, height=500)
+                        st.dataframe(prepare_for_display(df), use_container_width=True, height=500)
 
     # ── 生成记录 ──
     with tab_generations:
