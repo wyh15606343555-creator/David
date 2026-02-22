@@ -317,11 +317,14 @@ elif page == "📤 数据上传":
     )
     st.info(f"当前选择期间：**{period_label(upload_period)}**　　文件将存入 `data/{upload_period.replace('-', '')}/`")
 
+    st.markdown("### 📂 上传文件")
     uploaded_file = st.file_uploader(
-        "选择Excel文件",
+        "选择Excel文件（拖拽或点击上传）",
         type=["xlsx", "xls", "csv"],
-        help="支持 .xlsx / .xls / .csv 格式",
+        help="支持 .xlsx / .xls / .csv 格式，文件大小上限 50MB",
     )
+    if uploaded_file is None:
+        st.caption("⬆️ 请选择文件后，系统将自动解析。解析完成后点击下方「保存」按钮入库。")
 
     if uploaded_file is not None:
         st.markdown("---")
@@ -386,24 +389,33 @@ elif page == "📤 数据上传":
             # 保存按钮
             st.markdown("---")
             if st.button("💾 保存到平台数据库", type="primary", use_container_width=True):
-                # 保存文件到月份子目录
-                save_dir = period_data_dir(upload_period)
-                save_path = save_dir / uploaded_file.name
-                with open(save_path, "wb") as f:
-                    f.write(file_bytes)
+                try:
+                    # 保存文件到月份子目录
+                    save_dir = period_data_dir(upload_period)
+                    save_path = save_dir / uploaded_file.name
+                    with open(save_path, "wb") as f:
+                        f.write(file_bytes)
 
-                # 写入数据库（含 period）
-                conn = get_db()
-                conn.execute(
-                    "INSERT INTO uploads (period, filename, file_type, sheet_count, row_count, upload_time, file_path) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    (upload_period, uploaded_file.name, file_ext, len(df_dict), total_rows,
-                     datetime.now().isoformat(), str(save_path)),
-                )
-                conn.commit()
-                conn.close()
+                    # 写入数据库（含 period）
+                    conn = get_db()
+                    cursor = conn.execute(
+                        "INSERT INTO uploads (period, filename, file_type, sheet_count, row_count, upload_time, file_path) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (upload_period, uploaded_file.name, file_ext, len(df_dict), total_rows,
+                         datetime.now().isoformat(), str(save_path)),
+                    )
+                    upload_id = cursor.lastrowid
+                    conn.commit()
+                    conn.close()
 
-                st.success(f"✅ 文件已保存！【{period_label(upload_period)}】{uploaded_file.name}（{len(df_dict)} sheets, {total_rows:,} 行）")
-                st.balloons()
+                    # 缓存到 session_state（方便在线查看，即使磁盘文件丢失）
+                    if len(file_bytes) < 10 * 1024 * 1024:  # < 10MB 才缓存
+                        st.session_state[f"file_cache_{upload_id}"] = file_bytes
+
+                    st.success(f"✅ 文件已保存！【{period_label(upload_period)}】{uploaded_file.name}（{len(df_dict)} sheets, {total_rows:,} 行）")
+                    st.info("前往「💾 数据管理 → 👁️ 在线查看」即可浏览文件内容。")
+                    st.balloons()
+                except Exception as e:
+                    st.error(f"保存失败：{e}")
 
         except Exception as e:
             st.error(f"文件解析失败：{e}")
@@ -762,7 +774,7 @@ elif page == "💾 数据管理":
         key="mgmt_period",
     )
 
-    tab_uploads, tab_generations, tab_storage = st.tabs(["📤 上传记录", "📊 生成记录", "💿 存储统计"])
+    tab_uploads, tab_preview, tab_generations, tab_storage = st.tabs(["📤 上传记录", "👁️ 在线查看", "📊 生成记录", "💿 存储统计"])
 
     # ── 上传记录 ──
     with tab_uploads:
@@ -799,6 +811,93 @@ elif page == "💾 数据管理":
                 conn.close()
                 st.success(f"已删除记录 #{del_id}")
                 st.rerun()
+
+    # ── 在线查看 ──
+    with tab_preview:
+        st.markdown("### 在线查看已上传文件")
+        st.caption("选择已上传的文件，在线浏览各Sheet数据内容。")
+
+        conn = get_db()
+        if mgmt_period == "全部月份":
+            preview_files = conn.execute(
+                "SELECT id, period, filename, file_path, sheet_count, row_count FROM uploads ORDER BY period DESC, upload_time DESC"
+            ).fetchall()
+        else:
+            preview_files = conn.execute(
+                "SELECT id, period, filename, file_path, sheet_count, row_count FROM uploads WHERE period = ? ORDER BY upload_time DESC",
+                (mgmt_period,),
+            ).fetchall()
+        conn.close()
+
+        if not preview_files:
+            st.info("暂无已上传文件。请先在「📤 数据上传」页面上传文件。")
+        else:
+            selected_pf = st.selectbox(
+                "选择要查看的文件",
+                options=preview_files,
+                format_func=lambda x: f"【{period_label(x[1]) if x[1] else '未分类'}】{x[2]}（{x[4]} sheets, {x[5]:,} 行）",
+                key="preview_file_select",
+            )
+
+            if selected_pf:
+                fpath = selected_pf[3]
+                fname = selected_pf[2]
+                cache_key = f"file_cache_{selected_pf[0]}"
+
+                # 尝试从磁盘读取，失败则尝试 session_state 缓存
+                df_dict = None
+                read_source = ""
+                if fpath and os.path.exists(fpath):
+                    try:
+                        ext = fpath.rsplit(".", 1)[-1].lower()
+                        if ext == "csv":
+                            df_dict = {"Sheet1": pd.read_csv(fpath)}
+                        else:
+                            engine = "xlrd" if ext == "xls" else "openpyxl"
+                            xls = pd.ExcelFile(fpath, engine=engine)
+                            df_dict = {name: xls.parse(name) for name in xls.sheet_names}
+                        read_source = "磁盘"
+                    except Exception as e:
+                        st.error(f"读取文件失败：{e}")
+                elif cache_key in st.session_state:
+                    try:
+                        cached_bytes = st.session_state[cache_key]
+                        ext = fname.rsplit(".", 1)[-1].lower()
+                        if ext == "csv":
+                            df_dict = {"Sheet1": pd.read_csv(io.BytesIO(cached_bytes))}
+                        else:
+                            engine = "xlrd" if ext == "xls" else "openpyxl"
+                            xls = pd.ExcelFile(io.BytesIO(cached_bytes), engine=engine)
+                            df_dict = {name: xls.parse(name) for name in xls.sheet_names}
+                        read_source = "缓存"
+                    except Exception as e:
+                        st.error(f"从缓存读取失败：{e}")
+                else:
+                    st.warning("文件不在服务器磁盘上，且无会话缓存。请重新上传该文件。")
+
+                if df_dict:
+                    st.success(f"已加载 **{fname}**（来源：{read_source}，共 {len(df_dict)} 个Sheet）")
+
+                    sheet_names = list(df_dict.keys())
+                    if len(sheet_names) > 1:
+                        # 多Sheet用tabs展示
+                        preview_tabs = st.tabs([f"📄 {sn}" for sn in sheet_names])
+                        for ptab, sn in zip(preview_tabs, sheet_names):
+                            with ptab:
+                                df = df_dict[sn]
+                                c1, c2, c3 = st.columns(3)
+                                with c1:
+                                    st.caption(f"行数：{len(df):,}")
+                                with c2:
+                                    st.caption(f"列数：{len(df.columns)}")
+                                with c3:
+                                    st.caption(f"数据类型：{', '.join(df.dtypes.astype(str).unique()[:4])}")
+                                st.dataframe(df, use_container_width=True, height=500)
+                    else:
+                        sn = sheet_names[0]
+                        df = df_dict[sn]
+                        st.caption(f"Sheet: {sn} — {len(df):,} 行 × {len(df.columns)} 列")
+                        st.dataframe(df, use_container_width=True, height=500)
 
     # ── 生成记录 ──
     with tab_generations:
