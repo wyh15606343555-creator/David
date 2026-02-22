@@ -13,6 +13,7 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 import io
+import calendar
 
 # ── 路径配置 ──
 BASE_DIR = Path(__file__).parent
@@ -24,6 +25,40 @@ DB_PATH = BASE_DIR / "data" / "platform.db"
 
 for d in [DATA_DIR, OUTPUT_DIR, MAPPING_DIR, TEMPLATE_DIR]:
     d.mkdir(exist_ok=True)
+
+
+def period_options():
+    """生成最近24个月的期间选项，格式 YYYY-MM"""
+    now = datetime.now()
+    opts = []
+    for i in range(24):
+        y = now.year
+        m = now.month - i
+        while m <= 0:
+            m += 12
+            y -= 1
+        opts.append(f"{y:04d}-{m:02d}")
+    return opts
+
+
+def period_label(p):
+    """YYYY-MM → 2026年01月"""
+    y, m = p.split("-")
+    return f"{y}年{m}月"
+
+
+def period_data_dir(period):
+    """按月份返回数据子目录并自动创建"""
+    d = DATA_DIR / period.replace("-", "")
+    d.mkdir(exist_ok=True)
+    return d
+
+
+def period_output_dir(period):
+    """按月份返回输出子目录并自动创建"""
+    d = OUTPUT_DIR / period.replace("-", "")
+    d.mkdir(exist_ok=True)
+    return d
 
 # ── 页面配置 ──
 st.set_page_config(
@@ -88,6 +123,7 @@ def init_db():
     c.execute("""
         CREATE TABLE IF NOT EXISTS uploads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            period TEXT NOT NULL DEFAULT '',
             filename TEXT NOT NULL,
             file_type TEXT,
             sheet_count INTEGER DEFAULT 0,
@@ -115,6 +151,7 @@ def init_db():
     c.execute("""
         CREATE TABLE IF NOT EXISTS generations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            period TEXT NOT NULL DEFAULT '',
             source_upload_id INTEGER,
             mapping_id INTEGER,
             ai_model TEXT,
@@ -127,6 +164,12 @@ def init_db():
             FOREIGN KEY (mapping_id) REFERENCES mappings(id)
         )
     """)
+
+    # 兼容旧数据库：如果 period 列不存在则补加
+    for tbl in ("uploads", "generations"):
+        cols = [r[1] for r in c.execute(f"PRAGMA table_info({tbl})").fetchall()]
+        if "period" not in cols:
+            c.execute(f"ALTER TABLE {tbl} ADD COLUMN period TEXT NOT NULL DEFAULT ''")
 
     conn.commit()
     conn.close()
@@ -168,6 +211,17 @@ with st.sidebar:
     st.caption(f"已上传文件：{upload_count} 个")
     st.caption(f"映射规则：{mapping_count} 条")
     st.caption(f"已生成报表：{gen_count} 份")
+
+    # 显示有数据的月份
+    conn2 = get_db()
+    periods_with_data = conn2.execute(
+        "SELECT DISTINCT period FROM uploads WHERE period != '' ORDER BY period DESC LIMIT 6"
+    ).fetchall()
+    conn2.close()
+    if periods_with_data:
+        st.markdown("##### 已有数据月份")
+        for p in periods_with_data:
+            st.caption(f"• {period_label(p[0])}")
 
 
 # ====================================================================
@@ -251,6 +305,18 @@ elif page == "📤 数据上传":
     st.markdown('<div class="main-header">数据上传</div>', unsafe_allow_html=True)
     st.markdown("上传NC系统导出的Excel文件，平台自动解析数据结构。")
 
+    # ── 月份选择 ──
+    st.markdown("### 📅 选择数据月份")
+    period_opts = period_options()
+    upload_period = st.selectbox(
+        "数据所属月份",
+        options=period_opts,
+        format_func=period_label,
+        index=0,
+        help="请选择该文件对应的财务期间（月份）",
+    )
+    st.info(f"当前选择期间：**{period_label(upload_period)}**　　文件将存入 `data/{upload_period.replace('-', '')}/`")
+
     uploaded_file = st.file_uploader(
         "选择Excel文件",
         type=["xlsx", "xls", "csv"],
@@ -320,22 +386,23 @@ elif page == "📤 数据上传":
             # 保存按钮
             st.markdown("---")
             if st.button("💾 保存到平台数据库", type="primary", use_container_width=True):
-                # 保存文件
-                save_path = DATA_DIR / uploaded_file.name
+                # 保存文件到月份子目录
+                save_dir = period_data_dir(upload_period)
+                save_path = save_dir / uploaded_file.name
                 with open(save_path, "wb") as f:
                     f.write(file_bytes)
 
-                # 写入数据库
+                # 写入数据库（含 period）
                 conn = get_db()
                 conn.execute(
-                    "INSERT INTO uploads (filename, file_type, sheet_count, row_count, upload_time, file_path) VALUES (?, ?, ?, ?, ?, ?)",
-                    (uploaded_file.name, file_ext, len(df_dict), total_rows,
+                    "INSERT INTO uploads (period, filename, file_type, sheet_count, row_count, upload_time, file_path) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (upload_period, uploaded_file.name, file_ext, len(df_dict), total_rows,
                      datetime.now().isoformat(), str(save_path)),
                 )
                 conn.commit()
                 conn.close()
 
-                st.success(f"✅ 文件已保存！{uploaded_file.name}（{len(df_dict)} sheets, {total_rows:,} 行）")
+                st.success(f"✅ 文件已保存！【{period_label(upload_period)}】{uploaded_file.name}（{len(df_dict)} sheets, {total_rows:,} 行）")
                 st.balloons()
 
         except Exception as e:
@@ -486,15 +553,36 @@ elif page == "🤖 AI报表生成":
     st.markdown('<div class="main-header">AI 报表生成</div>', unsafe_allow_html=True)
     st.markdown("选择数据源和映射规则，AI引擎自动生成目标报表。")
 
-    # 获取可用数据
+    # ── 月份选择 ──
+    st.markdown("### 📅 选择报表月份")
+    gen_period_opts = period_options()
+    gen_period = st.selectbox(
+        "报表所属月份",
+        options=gen_period_opts,
+        format_func=period_label,
+        index=0,
+        key="gen_period",
+        help="选择要生成报表的财务期间",
+    )
+
+    # 获取该月份的数据
     conn = get_db()
-    uploads = conn.execute("SELECT id, filename, upload_time FROM uploads ORDER BY upload_time DESC").fetchall()
+    uploads = conn.execute(
+        "SELECT id, filename, upload_time, period FROM uploads WHERE period = ? ORDER BY upload_time DESC",
+        (gen_period,),
+    ).fetchall()
+    # 同时获取所有上传（用于回退显示）
+    all_uploads = conn.execute("SELECT id, filename, upload_time, period FROM uploads ORDER BY upload_time DESC").fetchall()
     mappings = conn.execute("SELECT id, name, created_at FROM mappings ORDER BY created_at DESC").fetchall()
     conn.close()
 
-    if not uploads:
+    if not uploads and not all_uploads:
         st.warning("请先上传数据文件。")
     else:
+        if not uploads:
+            st.warning(f"**{period_label(gen_period)}** 暂无已上传的数据文件。下方显示全部月份的文件供参考。")
+            uploads = all_uploads
+
         col_config1, col_config2 = st.columns(2)
 
         with col_config1:
@@ -502,7 +590,7 @@ elif page == "🤖 AI报表生成":
             selected_upload = st.selectbox(
                 "已上传的数据文件",
                 options=uploads,
-                format_func=lambda x: f"{x[1]}（{x[2][:10]}）",
+                format_func=lambda x: f"【{period_label(x[3]) if x[3] else '未分类'}】{x[1]}",
             )
 
         with col_config2:
@@ -586,9 +674,10 @@ elif page == "🤖 AI报表生成":
                     src_xls = pd.ExcelFile(file_info[0], engine=engine)
                     first_sheet = src_xls.parse(src_xls.sheet_names[0])
 
-                    # 生成输出文件
-                    output_name = f"报表_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-                    output_path = OUTPUT_DIR / output_name
+                    # 生成输出文件（按月份存放）
+                    out_dir = period_output_dir(gen_period)
+                    output_name = f"报表_{period_label(gen_period)}_{datetime.now().strftime('%H%M%S')}.xlsx"
+                    output_path = out_dir / output_name
 
                     with pd.ExcelWriter(str(output_path), engine="openpyxl") as writer:
                         # 写入原始数据sheet
@@ -608,11 +697,11 @@ elif page == "🤖 AI报表生成":
                                 })
                             pd.DataFrame(summary_data).to_excel(writer, sheet_name="数据汇总", index=False)
 
-                    # 记录到数据库
+                    # 记录到数据库（含 period）
                     conn = get_db()
                     conn.execute(
-                        "INSERT INTO generations (source_upload_id, mapping_id, ai_model, output_filename, output_path, status, created_at, duration_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                        (selected_upload[0],
+                        "INSERT INTO generations (period, source_upload_id, mapping_id, ai_model, output_filename, output_path, status, created_at, duration_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        (gen_period, selected_upload[0],
                          selected_mapping[0] if selected_mapping else None,
                          ai_model, output_name, str(output_path),
                          "已完成", datetime.now().isoformat(), 5.6),
@@ -663,20 +752,37 @@ elif page == "🤖 AI报表生成":
 elif page == "💾 数据管理":
     st.markdown('<div class="main-header">数据管理</div>', unsafe_allow_html=True)
 
+    # ── 月份筛选器 ──
+    mgmt_filter_opts = ["全部月份"] + period_options()
+    mgmt_period = st.selectbox(
+        "📅 按月份筛选",
+        options=mgmt_filter_opts,
+        format_func=lambda x: "全部月份" if x == "全部月份" else period_label(x),
+        index=0,
+        key="mgmt_period",
+    )
+
     tab_uploads, tab_generations, tab_storage = st.tabs(["📤 上传记录", "📊 生成记录", "💿 存储统计"])
 
     # ── 上传记录 ──
     with tab_uploads:
         conn = get_db()
-        uploads_data = conn.execute(
-            "SELECT id, filename, file_type, sheet_count, row_count, upload_time, status FROM uploads ORDER BY upload_time DESC"
-        ).fetchall()
+        if mgmt_period == "全部月份":
+            uploads_data = conn.execute(
+                "SELECT id, period, filename, file_type, sheet_count, row_count, upload_time, status FROM uploads ORDER BY period DESC, upload_time DESC"
+            ).fetchall()
+        else:
+            uploads_data = conn.execute(
+                "SELECT id, period, filename, file_type, sheet_count, row_count, upload_time, status FROM uploads WHERE period = ? ORDER BY upload_time DESC",
+                (mgmt_period,),
+            ).fetchall()
         conn.close()
 
         if not uploads_data:
             st.info("暂无上传记录。")
         else:
-            df_uploads = pd.DataFrame(uploads_data, columns=["ID", "文件名", "格式", "Sheet数", "总行数", "上传时间", "状态"])
+            df_uploads = pd.DataFrame(uploads_data, columns=["ID", "月份", "文件名", "格式", "Sheet数", "总行数", "上传时间", "状态"])
+            df_uploads["月份"] = df_uploads["月份"].apply(lambda x: period_label(x) if x else "未分类")
             df_uploads["上传时间"] = df_uploads["上传时间"].apply(lambda x: x[:19].replace("T", " "))
             st.dataframe(df_uploads, use_container_width=True, hide_index=True)
 
@@ -697,19 +803,30 @@ elif page == "💾 数据管理":
     # ── 生成记录 ──
     with tab_generations:
         conn = get_db()
-        gen_data = conn.execute("""
-            SELECT g.id, u.filename, m.name, g.ai_model, g.output_filename, g.status, g.created_at, g.duration_seconds
-            FROM generations g
-            LEFT JOIN uploads u ON g.source_upload_id = u.id
-            LEFT JOIN mappings m ON g.mapping_id = m.id
-            ORDER BY g.created_at DESC
-        """).fetchall()
+        if mgmt_period == "全部月份":
+            gen_data = conn.execute("""
+                SELECT g.id, g.period, u.filename, m.name, g.ai_model, g.output_filename, g.status, g.created_at, g.duration_seconds
+                FROM generations g
+                LEFT JOIN uploads u ON g.source_upload_id = u.id
+                LEFT JOIN mappings m ON g.mapping_id = m.id
+                ORDER BY g.period DESC, g.created_at DESC
+            """).fetchall()
+        else:
+            gen_data = conn.execute("""
+                SELECT g.id, g.period, u.filename, m.name, g.ai_model, g.output_filename, g.status, g.created_at, g.duration_seconds
+                FROM generations g
+                LEFT JOIN uploads u ON g.source_upload_id = u.id
+                LEFT JOIN mappings m ON g.mapping_id = m.id
+                WHERE g.period = ?
+                ORDER BY g.created_at DESC
+            """, (mgmt_period,)).fetchall()
         conn.close()
 
         if not gen_data:
             st.info("暂无生成记录。")
         else:
-            df_gen = pd.DataFrame(gen_data, columns=["ID", "源文件", "映射规则", "AI模型", "输出文件", "状态", "生成时间", "耗时(秒)"])
+            df_gen = pd.DataFrame(gen_data, columns=["ID", "月份", "源文件", "映射规则", "AI模型", "输出文件", "状态", "生成时间", "耗时(秒)"])
+            df_gen["月份"] = df_gen["月份"].apply(lambda x: period_label(x) if x else "未分类")
             df_gen["生成时间"] = df_gen["生成时间"].apply(lambda x: x[:19].replace("T", " "))
             st.dataframe(df_gen, use_container_width=True, hide_index=True)
 
