@@ -455,6 +455,84 @@ def gen_demo_df(report_name: str, currency: str) -> pd.DataFrame:
 
 
 # ====================================================================
+# 国企风格财务表格渲染
+# ====================================================================
+def render_finance_table(df: pd.DataFrame, report_name: str = "") -> str:
+    """将 DataFrame 渲染为国企风格 HTML 财务表格"""
+
+    SECTION_PREFIXES = ("一、", "二、", "三、", "四、", "五、", "六、", "七、", "八、", "九、", "十、")
+    TOTAL_KEYWORDS   = ("合计", "总计", "净利润", "负债和所有者")
+
+    def classify(first_val: str):
+        s = str(first_val)
+        stripped = s.strip()
+        if not stripped:
+            return "sep", 0
+        indent = len(s) - len(stripped)
+        level  = indent // 2
+        # 顶级合计（无缩进且含关键词）
+        if indent == 0 and any(k in stripped for k in TOTAL_KEYWORDS):
+            return "grandtotal", 0
+        # 一级分类标题
+        if any(stripped.startswith(p) for p in SECTION_PREFIXES):
+            return "section", 0
+        # 子合计（有缩进 + 含合计）
+        if indent > 0 and "合计" in stripped:
+            return "subtotal", level
+        return "normal", level
+
+    def colorize(val: str) -> str:
+        v = str(val)
+        if v.startswith("↑"):
+            return f'<span style="color:#16a34a;font-weight:600">{v}</span>'
+        if v.startswith("↓"):
+            return f'<span style="color:#dc2626;font-weight:600">{v}</span>'
+        if v.startswith("✅"):
+            return f'<span style="color:#16a34a">{v}</span>'
+        if v.startswith("⚠️"):
+            return f'<span style="color:#d97706">{v}</span>'
+        return v
+
+    cols = list(df.columns)
+
+    # ── 表头 ──
+    ths = "".join(
+        f'<th style="text-align:{"left" if i == 0 else "right"}">{c}</th>'
+        for i, c in enumerate(cols)
+    )
+    thead = f"<thead><tr>{ths}</tr></thead>"
+
+    # ── 表体 ──
+    rows_html = []
+    odd = True
+    for _, row in df.iterrows():
+        first_val = str(row.iloc[0]) if len(row) > 0 else ""
+        rtype, level = classify(first_val)
+
+        if rtype == "sep":
+            rows_html.append(f'<tr class="ft-sep"><td colspan="{len(cols)}"></td></tr>')
+            continue
+
+        indent_px = level * 16 + 10
+        first_td = f'<td style="text-align:left;padding-left:{indent_px}px">{first_val.strip()}</td>'
+        rest_tds  = "".join(
+            f'<td style="text-align:right">{colorize(str(v))}</td>'
+            for v in list(row)[1:]
+        )
+
+        if rtype == "normal":
+            cls = f"ft-normal ft-{'odd' if odd else 'even'}"
+            odd = not odd
+        else:
+            cls = f"ft-{rtype}"
+
+        rows_html.append(f'<tr class="{cls}">{first_td}{rest_tds}</tr>')
+
+    tbody = f"<tbody>{''.join(rows_html)}</tbody>"
+    return f'<div class="ft-wrap"><table class="ft">{thead}{tbody}</table></div>'
+
+
+# ====================================================================
 # AI 响应
 # ====================================================================
 def ai_respond(query: str, report_name: str, period: str, currency: str) -> str:
@@ -626,8 +704,55 @@ div[data-testid="stRadio"] label[data-checked="true"]::before {
     font-size: 0.83rem; color: #2c3e50; line-height: 1.7; margin-top: 0.5rem;
 }
 
-/* ── 数据表格 ── */
+/* ── 原生 DataFame（资料库预览用）── */
 [data-testid="stDataFrame"] { border: 1px solid #cdd8eb !important; border-radius: 5px !important; overflow: hidden !important; }
+
+/* ── 国企风格财务报表表格 ── */
+.ft-wrap {
+    overflow-x: auto; border-radius: 6px;
+    border: 1px solid #9eb8d8;
+    box-shadow: 0 3px 12px rgba(8,28,56,0.10); margin-top: 0.4rem;
+}
+.ft {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.82rem;
+    font-family: "PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif;
+}
+/* 表头 — 深海蓝 */
+.ft thead th {
+    background: #0c3060; color: #ddeeff;
+    padding: 9px 13px; font-weight: 600; font-size: 0.79rem;
+    border-right: 1px solid rgba(255,255,255,0.10);
+    white-space: nowrap; letter-spacing: 0.04em;
+}
+.ft thead th:last-child { border-right: none; }
+/* 普通数据行 */
+.ft tbody td {
+    padding: 6px 13px; border-bottom: 1px solid #e4ecf5;
+    color: #243040; vertical-align: middle;
+}
+.ft tbody tr.ft-odd  td { background: #fff; }
+.ft tbody tr.ft-even td { background: #f5f8fd; }
+.ft tbody tr.ft-normal:hover td { background: #e4f0ff !important; }
+/* 一级分类行 — 矿蓝浅底 */
+.ft tbody tr.ft-section td {
+    background: #d6e9ff !important; color: #0c3060 !important;
+    font-weight: 700; font-size: 0.83rem;
+    border-top: 1px solid #93c5fd; border-bottom: 1px solid #93c5fd;
+}
+/* 子合计行 — 极浅蓝 + 斜体 */
+.ft tbody tr.ft-subtotal td {
+    background: #eef5ff !important; color: #1e4a8a !important;
+    font-weight: 600; border-bottom: 1px solid #c3d9f5;
+}
+/* 顶级合计/总计 — 深蓝白字 */
+.ft tbody tr.ft-grandtotal td {
+    background: #1255a8 !important; color: #fff !important;
+    font-weight: 700; font-size: 0.84rem;
+    border-top: 2px solid #0c3060; border-bottom: 2px solid #0c3060;
+}
+/* 空行分隔 */
+.ft tbody tr.ft-sep td { height: 5px; background: #e4ecf5; padding: 0; border: none; }
 
 /* ── 侧边栏 ── */
 [data-testid="stSidebar"] { background: #f3f7fd !important; border-right: 1px solid #cdd8eb !important; }
@@ -1040,7 +1165,7 @@ for mod_name, tab in zip(module_names, tabs):
 
                 # 报表数据
                 df = gen_demo_df(selected_rpt, currency)
-                st.dataframe(df, use_container_width=True, height=400, hide_index=True)
+                st.markdown(render_finance_table(df, selected_rpt), unsafe_allow_html=True)
 
                 # AI 取数对话
                 st.markdown(
