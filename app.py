@@ -540,28 +540,28 @@ def render_quick_report(report_name: str, currency: str) -> str:
     u = "美元" if currency == "美元" else "元人民币"
 
     kpis = [
-        {"name": "铜  产  量",  "val": "2,086",  "unit": "吨",
+        {"name": "铜产量",    "val": "2,086",  "unit": "吨",
          "yoy": "+3.8%", "yoy_up": True,  "mom": "+1.8%", "mom_up": True,
          "plan": "2,100",  "rate": 99.3,  "yoy_base": "2,010"},
-        {"name": "铜  销  量",  "val": "2,140",  "unit": "吨",
+        {"name": "铜销量",    "val": "2,140",  "unit": "吨",
          "yoy": "+2.4%", "yoy_up": True,  "mom": "+2.1%", "mom_up": True,
          "plan": "2,100",  "rate": 101.9, "yoy_base": "2,090"},
-        {"name": "综合回收率", "val": "91.3",   "unit": "%",
+        {"name": "综合回收率", "val": "91.3",  "unit": "%",
          "yoy": "+0.8%", "yoy_up": True,  "mom": "+0.5%", "mom_up": True,
          "plan": "91.0",   "rate": 100.3, "yoy_base": "90.6"},
-        {"name": "生 产 成 本", "val": "4,280",  "unit": f"{u}/吨",
+        {"name": "生产成本",  "val": "4,280",  "unit": f"{u}/吨",
          "yoy": "−1.2%", "yoy_up": False, "mom": "−0.7%", "mom_up": False,
          "plan": "4,350",  "rate": 101.6, "yoy_base": "4,332"},
-        {"name": "销 售 收 入", "val": "20,330", "unit": f"万{u}",
+        {"name": "销售收入",  "val": "20,330", "unit": f"万{u}",
          "yoy": "+8.2%", "yoy_up": True,  "mom": "+2.6%", "mom_up": True,
          "plan": "20,000", "rate": 101.7, "yoy_base": "18,790"},
-        {"name": "净  利  润",  "val": "1,430",  "unit": f"万{u}",
+        {"name": "净利润",    "val": "1,430",  "unit": f"万{u}",
          "yoy": "+18.0%","yoy_up": True,  "mom": "+3.6%", "mom_up": True,
          "plan": "1,400",  "rate": 102.1, "yoy_base": "1,212"},
-        {"name": "电       耗", "val": "1,850",  "unit": "度/吨铜",
+        {"name": "电耗",      "val": "1,850",  "unit": "度/吨铜",
          "yoy": "−2.1%", "yoy_up": False, "mom": "−1.1%", "mom_up": False,
          "plan": "1,900",  "rate": 102.6, "yoy_base": "1,890"},
-        {"name": "员 工 人 数", "val": "486",    "unit": "人",
+        {"name": "员工人数",  "val": "486",    "unit": "人",
          "yoy": "+1.5%", "yoy_up": True,  "mom": "+0.2%", "mom_up": True,
          "plan": "490",    "rate": 99.2,  "yoy_base": "479"},
     ]
@@ -826,9 +826,14 @@ div[data-testid="stRadio"] label[data-checked="true"]::before {
     border-radius: 7px; padding: 13px 14px 11px;
     box-shadow: 0 2px 8px rgba(8,28,56,0.07);
 }
-.kd-name { font-size: 0.72rem; color: #6b7a8d; font-weight: 500; letter-spacing: 0.04em; margin-bottom: 5px; }
-.kd-val  { font-size: 1.55rem; font-weight: 700; color: #081c38; line-height: 1.15; margin-bottom: 5px; }
-.kd-unit { font-size: 0.70rem; color: #8090a8; font-weight: 400; }
+.kd-name {
+    display: inline-block; font-size: 0.75rem; font-weight: 700;
+    color: #fff; background: #1255a8;
+    padding: 2px 9px; border-radius: 3px;
+    letter-spacing: 0.06em; margin-bottom: 9px;
+}
+.kd-val  { font-size: 1.65rem; font-weight: 700; color: #081c38; line-height: 1.15; margin-bottom: 5px; }
+.kd-unit { font-size: 0.76rem; color: #6b7a8d; font-weight: 500; }
 .kd-yoy  { font-size: 1.05rem; font-weight: 700; margin-bottom: 2px; }
 .kd-yoy-label { font-size: 0.70rem; font-weight: 500; opacity: 0.75; }
 .kd-divider { height: 1px; background: #e8eef6; margin: 7px 0; }
