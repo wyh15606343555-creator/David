@@ -533,6 +533,68 @@ def render_finance_table(df: pd.DataFrame, report_name: str = "") -> str:
 
 
 # ====================================================================
+# 重要指标快报 — 大卡片可视化
+# ====================================================================
+def render_quick_report(report_name: str, currency: str) -> str:
+    """将重要指标快报渲染为 4 列大卡片网格，同比/环比突出显示"""
+    u = "美元" if currency == "美元" else "元人民币"
+
+    kpis = [
+        {"name": "铜  产  量",  "val": "2,086",  "unit": "吨",
+         "yoy": "+3.8%", "yoy_up": True,  "mom": "+1.8%", "mom_up": True,
+         "plan": "2,100",  "rate": 99.3,  "yoy_base": "2,010"},
+        {"name": "铜  销  量",  "val": "2,140",  "unit": "吨",
+         "yoy": "+2.4%", "yoy_up": True,  "mom": "+2.1%", "mom_up": True,
+         "plan": "2,100",  "rate": 101.9, "yoy_base": "2,090"},
+        {"name": "综合回收率", "val": "91.3",   "unit": "%",
+         "yoy": "+0.8%", "yoy_up": True,  "mom": "+0.5%", "mom_up": True,
+         "plan": "91.0",   "rate": 100.3, "yoy_base": "90.6"},
+        {"name": "生 产 成 本", "val": "4,280",  "unit": f"{u}/吨",
+         "yoy": "−1.2%", "yoy_up": False, "mom": "−0.7%", "mom_up": False,
+         "plan": "4,350",  "rate": 101.6, "yoy_base": "4,332"},
+        {"name": "销 售 收 入", "val": "20,330", "unit": f"万{u}",
+         "yoy": "+8.2%", "yoy_up": True,  "mom": "+2.6%", "mom_up": True,
+         "plan": "20,000", "rate": 101.7, "yoy_base": "18,790"},
+        {"name": "净  利  润",  "val": "1,430",  "unit": f"万{u}",
+         "yoy": "+18.0%","yoy_up": True,  "mom": "+3.6%", "mom_up": True,
+         "plan": "1,400",  "rate": 102.1, "yoy_base": "1,212"},
+        {"name": "电       耗", "val": "1,850",  "unit": "度/吨铜",
+         "yoy": "−2.1%", "yoy_up": False, "mom": "−1.1%", "mom_up": False,
+         "plan": "1,900",  "rate": 102.6, "yoy_base": "1,890"},
+        {"name": "员 工 人 数", "val": "486",    "unit": "人",
+         "yoy": "+1.5%", "yoy_up": True,  "mom": "+0.2%", "mom_up": True,
+         "plan": "490",    "rate": 99.2,  "yoy_base": "479"},
+    ]
+
+    cards = []
+    for k in kpis:
+        yoy_c = "#16a34a" if k["yoy_up"] else "#dc2626"
+        mom_c = "#16a34a" if k["mom_up"] else "#dc2626"
+        ya    = "▲" if k["yoy_up"] else "▼"
+        ma    = "▲" if k["mom_up"] else "▼"
+        bar_w = min(k["rate"], 100)
+        bar_c = "#22c55e" if k["rate"] >= 100 else "#f59e0b" if k["rate"] >= 95 else "#ef4444"
+
+        cards.append(f"""<div class="kd-card">
+  <div class="kd-name">{k["name"]}</div>
+  <div class="kd-val">{k["val"]}<span class="kd-unit"> {k["unit"]}</span></div>
+  <div class="kd-yoy" style="color:{yoy_c}">{ya} {k["yoy"]} <span class="kd-yoy-label">同比</span></div>
+  <div class="kd-divider"></div>
+  <div class="kd-row2">
+    <span style="color:{mom_c};font-weight:600">{ma} {k["mom"]} 环比</span>
+    <span class="kd-plan-val">计划 {k["plan"]}</span>
+  </div>
+  <div class="kd-prog-wrap"><div class="kd-prog-bar" style="width:{bar_w}%;background:{bar_c}"></div></div>
+  <div class="kd-rate-row">
+    <span style="color:{bar_c};font-weight:600">完成率 {k["rate"]}%</span>
+    <span class="kd-yoy-base">上年同期 {k["yoy_base"]}</span>
+  </div>
+</div>""")
+
+    return f'<div class="kd-grid">{"".join(cards)}</div>'
+
+
+# ====================================================================
 # AI 响应
 # ====================================================================
 def ai_respond(query: str, report_name: str, period: str, currency: str) -> str:
@@ -753,6 +815,29 @@ div[data-testid="stRadio"] label[data-checked="true"]::before {
 }
 /* 空行分隔 */
 .ft tbody tr.ft-sep td { height: 5px; background: #e4ecf5; padding: 0; border: none; }
+
+/* ── 重要指标快报 — 大卡片网格 ── */
+.kd-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin: 6px 0 14px;
+}
+.kd-card {
+    background: #fff; border: 1px solid #c0d4ea; border-top: 3px solid #1255a8;
+    border-radius: 7px; padding: 13px 14px 11px;
+    box-shadow: 0 2px 8px rgba(8,28,56,0.07);
+}
+.kd-name { font-size: 0.72rem; color: #6b7a8d; font-weight: 500; letter-spacing: 0.04em; margin-bottom: 5px; }
+.kd-val  { font-size: 1.55rem; font-weight: 700; color: #081c38; line-height: 1.15; margin-bottom: 5px; }
+.kd-unit { font-size: 0.70rem; color: #8090a8; font-weight: 400; }
+.kd-yoy  { font-size: 1.05rem; font-weight: 700; margin-bottom: 2px; }
+.kd-yoy-label { font-size: 0.70rem; font-weight: 500; opacity: 0.75; }
+.kd-divider { height: 1px; background: #e8eef6; margin: 7px 0; }
+.kd-row2 { display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 7px; }
+.kd-plan-val { color: #8090a8; }
+.kd-prog-wrap { background: #e8eef6; border-radius: 3px; height: 5px; margin-bottom: 5px; overflow: hidden; }
+.kd-prog-bar  { height: 100%; border-radius: 3px; }
+.kd-rate-row  { display: flex; justify-content: space-between; font-size: 0.70rem; }
+.kd-yoy-base  { color: #8090a8; }
 
 /* ── 侧边栏 ── */
 [data-testid="stSidebar"] { background: #f3f7fd !important; border-right: 1px solid #cdd8eb !important; }
@@ -1151,21 +1236,24 @@ for mod_name, tab in zip(module_names, tabs):
                     unsafe_allow_html=True,
                 )
 
-                # KPI 卡片（快报 / 分析类显示）
-                kpi_keywords = ["快报", "指标", "同比", "环比", "分析", "底稿"]
-                if any(k in selected_rpt for k in kpi_keywords):
-                    ustr = "美元" if currency == "美元" else "元"
-                    st.markdown(f"""
+                # 报表数据
+                # 重要指标快报 → 大卡片网格（同比/环比突出显示）
+                if "指标" in selected_rpt and "快报" in selected_rpt:
+                    st.markdown(render_quick_report(selected_rpt, currency), unsafe_allow_html=True)
+                else:
+                    # 其他快报/分析类：顶部 4 个摘要 KPI 卡片
+                    kpi_keywords = ["快报", "同比", "环比", "分析", "底稿"]
+                    if any(k in selected_rpt for k in kpi_keywords):
+                        ustr = "美元" if currency == "美元" else "元"
+                        st.markdown(f"""
 <div class="kpi-grid">
   <div class="kpi-card"><div class="kpi-v">14,297</div><div class="kpi-l">净利润（万{ustr}）</div><div class="kpi-c up">↑18.0% 同比</div></div>
   <div class="kpi-card"><div class="kpi-v">85,420</div><div class="kpi-l">营业收入（万{ustr}）</div><div class="kpi-c up">↑8.2% 同比</div></div>
   <div class="kpi-card"><div class="kpi-v">27.2%</div><div class="kpi-l">毛  利  率</div><div class="kpi-c up">↑1.5pp 同比</div></div>
   <div class="kpi-card"><div class="kpi-v">2,086t</div><div class="kpi-l">铜产量（本月）</div><div class="kpi-c up">↑1.8% 环比</div></div>
 </div>""", unsafe_allow_html=True)
-
-                # 报表数据
-                df = gen_demo_df(selected_rpt, currency)
-                st.markdown(render_finance_table(df, selected_rpt), unsafe_allow_html=True)
+                    df = gen_demo_df(selected_rpt, currency)
+                    st.markdown(render_finance_table(df, selected_rpt), unsafe_allow_html=True)
 
                 # AI 取数对话
                 st.markdown(
