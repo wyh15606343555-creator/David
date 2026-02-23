@@ -16,8 +16,8 @@ import time
 
 # ── 页面配置 ──
 st.set_page_config(
-    page_title="财务报表智能生成平台",
-    page_icon="📊",
+    page_title="AI财务报表智能生成平台",
+    page_icon="🤖",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -654,7 +654,7 @@ html, body, [data-testid="stApp"] {
     box-shadow: 0 4px 16px rgba(8,28,56,0.30);
     margin-bottom: 0.5rem;
 }
-.app-header h2 { margin: 0; font-size: 1.08rem; font-weight: 700; letter-spacing: 0.05em; }
+.app-header h2 { margin: 0; font-size: 1.35rem; font-weight: 800; letter-spacing: 0.06em; }
 .app-header .sub { font-size: 0.70rem; opacity: 0.60; margin-top: 3px; letter-spacing: 0.1em; }
 .app-header .right { text-align: right; font-size: 0.78rem; line-height: 1.8; opacity: 0.85; }
 .ai-dot { color: #4ade80; font-weight: 800; }
@@ -938,7 +938,7 @@ with hc1:
     st.markdown("""
     <div class="app-header">
         <div>
-            <h2>📊 财务报表智能生成平台</h2>
+            <h2>AI 财务报表智能生成平台</h2>
             <div class="sub">中色华鑫马本德矿业有限公司 &nbsp;·&nbsp; FINANCIAL INTELLIGENCE PLATFORM</div>
         </div>
         <div class="right">
