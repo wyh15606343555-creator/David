@@ -729,8 +729,8 @@ div[data-testid="stRadio"] label[data-checked="true"]::before {
     margin-bottom: 0.65rem; padding-bottom: 0.55rem;
     border-bottom: 2px solid #e6eef8;
 }
-.rpt-title { font-size: 0.96rem; font-weight: 700; color: #081c38; }
-.rpt-meta { font-size: 0.72rem; color: #8090a8; }
+.rpt-title { font-size: 1.0rem; font-weight: 700; color: #081c38; }
+.rpt-meta { font-size: 0.88rem; color: #3a5070; font-weight: 500; letter-spacing: 0.02em; }
 .badge { display: inline-block; border-radius: 3px; padding: 2px 8px; font-size: 0.70rem; font-weight: 600; }
 .badge-ok   { background: #d1fae5; color: #065f46; }
 .badge-wait { background: #fef3c7; color: #92400e; }
@@ -766,14 +766,46 @@ div[data-testid="stRadio"] label[data-checked="true"]::before {
 .kpi-base { font-size: 0.67rem; color: #8090a8; }
 .up { color: #059669; } .dn { color: #dc2626; }
 
-/* ── 工具栏区 ── */
-.toolbar-wrap {
-    background: #f3f7fd; border: 1px solid #cdd8eb; border-radius: 6px;
-    padding: 0.42rem 0.75rem; margin-bottom: 0.75rem;
-    display: flex; align-items: center; gap: 4px;
+/* ── 工具栏按钮 — 统一规范 ── */
+/* 普通按钮（运算本类/全部/审核校验） */
+.stButton > button {
+    border-radius: 5px !important;
+    font-size: 0.83rem !important; font-weight: 600 !important;
+    min-height: 36px !important; padding: 0 16px !important;
+    border: 1.5px solid #9eb8d8 !important;
+    color: #1255a8 !important; background: #f4f8fd !important;
+    letter-spacing: 0.02em !important; white-space: nowrap !important;
+    transition: background 0.15s, border-color 0.15s, color 0.15s !important;
+    box-shadow: none !important;
 }
-.toolbar-label { font-size: 0.78rem; font-weight: 600; color: #4a5870; margin-right: 4px; white-space: nowrap; }
-.toolbar-sep { width: 1px; height: 18px; background: #c0cfdf; margin: 0 6px; flex-shrink: 0; }
+.stButton > button:hover {
+    background: #dbeafe !important; border-color: #1255a8 !important; color: #0c3060 !important;
+}
+.stButton > button:active {
+    background: #1255a8 !important; color: #fff !important; border-color: #0c3060 !important;
+}
+/* Primary 按钮（运算当前）— 深蓝实心 */
+.stButton > button[kind="primary"] {
+    background: #1255a8 !important; color: #fff !important;
+    border-color: #1255a8 !important;
+}
+.stButton > button[kind="primary"]:hover {
+    background: #0c3060 !important; border-color: #0c3060 !important; color: #fff !important;
+}
+/* 下载按钮（导出 Excel）同普通按钮 */
+.stDownloadButton > button {
+    border-radius: 5px !important;
+    font-size: 0.83rem !important; font-weight: 600 !important;
+    min-height: 36px !important; padding: 0 16px !important;
+    border: 1.5px solid #9eb8d8 !important;
+    color: #1255a8 !important; background: #f4f8fd !important;
+    letter-spacing: 0.02em !important; white-space: nowrap !important;
+    transition: background 0.15s, border-color 0.15s !important;
+    box-shadow: none !important;
+}
+.stDownloadButton > button:hover {
+    background: #dbeafe !important; border-color: #1255a8 !important; color: #0c3060 !important;
+}
 
 /* ── AI 对话区 ── */
 .ai-zone { background: #f0f6ff; border: 1px solid #b8d0f0; border-radius: 8px; padding: 0.65rem 0.9rem; margin-top: 0.9rem; }
@@ -1197,29 +1229,41 @@ for mod_name, tab in zip(module_names, tabs):
                 is_computed = r_key in st.session_state.computed_reports
 
                 # 工具栏
-                tc1, tc2, tc3, tsp1, tc4, tc5 = st.columns([1.3, 1.7, 1.9, 0.2, 1.3, 1.3])
+                # 工具栏：左侧运算组 | 分隔 | 右侧工具组
+                st.markdown(
+                    '<div style="background:#f0f5fb;border:1px solid #c8d8ec;border-radius:7px;'
+                    'padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;gap:6px;">',
+                    unsafe_allow_html=True,
+                )
+                tc1, tc2, tc3, tsp1, tc4, tc5 = st.columns([1.35, 1.75, 1.95, 0.08, 1.35, 1.35])
                 with tc1:
                     run_single = st.button(
-                        "▶ 运算当前", key=f"rs_{r_key}", use_container_width=True, type="primary",
+                        "▶  运算当前", key=f"rs_{r_key}", use_container_width=True, type="primary",
                     )
                 with tc2:
                     run_cat = st.button(
-                        "▶▶ 运算本类报表", key=f"rc_{r_key}", use_container_width=True,
+                        "▶▶  运算本类报表", key=f"rc_{r_key}", use_container_width=True,
                     )
                 with tc3:
                     run_all = st.button(
-                        "▶▶▶ 全部报表运算", key=f"ra_{r_key}", use_container_width=True,
+                        "▶▶▶  全部报表运算", key=f"ra_{r_key}", use_container_width=True,
+                    )
+                with tsp1:
+                    st.markdown(
+                        '<div style="width:1px;height:28px;background:#c0d0e4;margin:4px auto;"></div>',
+                        unsafe_allow_html=True,
                     )
                 with tc4:
                     st.download_button(
-                        "📥 导出 Excel",
+                        "📊  导出 Excel",
                         data=b"demo",
                         file_name=f"{selected_rpt}_{period_label(selected_period)}.xlsx",
                         key=f"dl_{r_key}", use_container_width=True,
                     )
                 with tc5:
-                    if st.button("📋 审核校验", key=f"audit_{r_key}", use_container_width=True):
+                    if st.button("✔  审核校验", key=f"audit_{r_key}", use_container_width=True):
                         st.toast("✅ 审核完成，数据无异常", icon="✅")
+                st.markdown('</div>', unsafe_allow_html=True)
 
                 # 运算逻辑
                 if run_single:
