@@ -343,6 +343,121 @@ def gen_demo_df(report_name: str, currency: str) -> pd.DataFrame:
             ],
         })
 
+    elif "生产经营" in report_name:
+        return pd.DataFrame({
+            "指  标": [
+                "一、产量", "  铜产量（吨）", "  硫酸联产量（吨）",
+                "二、质量", "  综合回收率（%）", "  铜品位（%）",
+                "三、能耗", "  电耗（度/吨铜）", "  水耗（吨/吨铜）", "  蒸汽耗（吨/吨铜）",
+                "四、投入", "  处理矿石量（吨）",
+            ],
+            "本月完成": ["", "2086", "8240", "", "91.3%", "99.8%", "", "1850", "42.5", "3.2", "", "38400"],
+            "月度计划": ["", "2100", "8200", "", "91.0%", "99.5%", "", "1900", "45.0", "3.5", "", "38000"],
+            "完  成  率": ["", "99.3%", "100.5%", "", "✅达标", "✅达标", "", "✅达标", "✅达标", "✅达标", "", "101.1%"],
+            "上月实际": ["", "2050", "8120", "", "90.8%", "99.6%", "", "1870", "43.0", "3.3", "", "37800"],
+            "环  比": ["", "↑1.8%", "↑1.5%", "", "↑0.5%", "↑0.2%", "", "↓1.1%", "↓1.2%", "↓3.0%", "", "↑1.6%"],
+            "本年累计": ["", "12380", "48960", "", "—", "—", "", "—", "—", "—", "", "229800"],
+            "年度计划": ["", "25200", "98000", "", "—", "—", "", "—", "—", "—", "", "456000"],
+            "进  度": ["", "49.1%", "50.0%", "", "—", "—", "", "—", "—", "—", "", "50.4%"],
+        })
+
+    elif "资金情况" in report_name:
+        return pd.DataFrame({
+            "项  目": [
+                "一、货币资金", "  库存现金", "  银行存款（境内）", "  银行存款（境外）",
+                "  货币资金合计", "",
+                "二、应收款项", "  应收账款", "  预付账款", "  其他应收款",
+                "  应收合计", "",
+                "三、应付款项", "  应付账款", "  预收账款", "  其他应付款",
+                "  应付合计", "",
+                "四、负债情况", "  短期借款", "  长期借款（当年到期）", "  带息负债合计",
+                "资产负债率（%）",
+            ],
+            f"本月末（{unit}）": [
+                "", "70", "8320", "4060",
+                "12450", "",
+                "", "8320", "1800", "980",
+                "11100", "",
+                "", "3840", "680", "1120",
+                "5640", "",
+                "", "5200", "2000", "7200",
+                "43.4%",
+            ],
+            f"上月末（{unit}）": [
+                "", "65", "7950", "3890",
+                "11905", "",
+                "", "8050", "1650", "940",
+                "10640", "",
+                "", "3650", "620", "1080",
+                "5350", "",
+                "", "5000", "2000", "7000",
+                "42.8%",
+            ],
+            "环比变动": [
+                "", "↑7.7%", "↑4.7%", "↑4.4%",
+                "↑4.6%", "",
+                "", "↑3.4%", "↑9.1%", "↑4.3%",
+                "↑4.3%", "",
+                "", "↑5.2%", "↑9.7%", "↑3.7%",
+                "↑5.4%", "",
+                "", "↑4.0%", "—", "↑2.9%",
+                "↑0.6pp",
+            ],
+            f"上年同期（{unit}）": [
+                "", "55", "7420", "3810",
+                "11285", "",
+                "", "7890", "1450", "860",
+                "10200", "",
+                "", "3560", "540", "980",
+                "5080", "",
+                "", "4800", "2000", "6800",
+                "41.9%",
+            ],
+            "同比变动": [
+                "", "↑27.3%", "↑12.1%", "↑6.5%",
+                "↑10.3%", "",
+                "", "↑5.5%", "↑24.1%", "↑14.0%",
+                "↑8.8%", "",
+                "", "↑7.9%", "↑25.9%", "↑14.3%",
+                "↑11.0%", "",
+                "", "↑8.3%", "—", "↑5.9%",
+                "↑1.5pp",
+            ],
+        })
+
+    elif "人力资源" in report_name:
+        return pd.DataFrame({
+            "指  标": [
+                "一、人员总量", "  在岗职工（人）", "  其中：境外员工", "  劳务派遣人员",
+                "  合同制员工", "",
+                "二、本期变动", "  本期新入职（人）", "  本期离职（人）",
+                "  净增减（人）", "",
+                "三、人工成本", f"  工资总额（{unit}）", f"  福利费（{unit}）", f"  人均薪酬（{unit}）",
+            ],
+            "本  月": ["", "486", "42", "38", "406", "", "", "3", "2", "↑1", "", "", "420", "84", "0.87"],
+            "上  月": ["", "485", "41", "38", "406", "", "", "2", "3", "↓1", "", "", "415", "83", "0.86"],
+            "环  比": ["", "↑0.2%", "↑2.4%", "—", "—", "", "", "—", "—", "—", "", "", "↑1.2%", "↑1.2%", "↑1.2%"],
+            "本年累计": ["", "—", "—", "—", "—", "", "", "12", "8", "↑4", "", "", "2480", "496", "—"],
+            "年度计划": ["", "490", "—", "—", "—", "", "", "—", "—", "—", "", "", "—", "—", "—"],
+        })
+
+    elif "环保安全" in report_name:
+        return pd.DataFrame({
+            "指  标": [
+                "一、安全生产", "  本月安全生产天数（天）", "  累计安全生产天数（天）",
+                "  安全培训人次", "  安全检查次数", "  隐患整改完成率（%）", "",
+                "二、环保指标", "  外排废水达标率（%）", "  废气排放达标率（%）",
+                "  固废综合利用率（%）", "  污水处理量（吨）",
+                "  硫酸雾排放浓度（mg/m³）", "",
+                "三、应急管理", "  应急演练（次）", "  消防检查（次）",
+            ],
+            "本  月": ["", "31", "365", "286", "12", "100%", "", "", "100%", "100%", "96.5%", "18600", "0.42", "", "", "2", "4"],
+            "达标要求": ["", "31", "—", "—", "≥8", "≥95%", "", "", "≥95%", "≥95%", "≥90%", "—", "≤5.0", "", "", "≥1", "≥2"],
+            "达标状态": ["", "✅达标", "—", "—", "✅达标", "✅达标", "", "", "✅达标", "✅达标", "✅达标", "—", "✅达标", "", "", "✅达标", "✅达标"],
+            "上  月": ["", "28", "334", "312", "14", "97.8%", "", "", "100%", "100%", "95.8%", "17200", "0.38", "", "", "1", "3"],
+            "本年累计": ["", "55", "—", "—", "26", "—", "", "", "—", "—", "—", "35800", "—", "", "", "3", "7"],
+        })
+
     elif "快报" in report_name or "指标" in report_name:
         return pd.DataFrame({
             "指  标": [
@@ -1159,7 +1274,7 @@ for mod_name, tab in zip(module_names, tabs):
                     f'<div class="rpt-header">'
                     f'<div class="rpt-title">中色华鑫马本德矿业有限公司<br>'
                     f'{period_label(selected_period)}月度财务分析报告</div>'
-                    f'<div class="rpt-meta">AI智能生成 · 含5张数据表格 · {badge}</div>'
+                    f'<div class="rpt-meta">AI智能生成 · 7章节 · 含5张数据表格 · {badge}</div>'
                     f'</div>',
                     unsafe_allow_html=True,
                 )
@@ -1167,33 +1282,41 @@ for mod_name, tab in zip(module_names, tabs):
                 if st.session_state.word_generated:
                     st.markdown("""
 <div class="ai-reply">
-<b>一、总体经营情况</b><br>
-2026年1月，公司生产经营总体平稳，实现营业收入 <b>85420 万美元</b>，同比增长 8.2%；
-净利润 <b>14297 万美元</b>，同比增长 18.0%，盈利能力持续提升。
-铜产量 2086 吨，完成计划 99.3%。<br><br>
+<b>一、市场铜价情况</b><br>
+2026年1月，LME铜均价 9500 美元/吨，较上月上涨 0.4%，同比上涨 6.8%。受美元走弱及全球制造业PMI回暖影响，铜价月内整体维持高位震荡。公司本月铜均价实现 9500 美元/吨，与 LME 持平，价格传导正常。<br><br>
 
-<b>二、主要指标完成情况</b><br>
-综合回收率 91.3%，优于 91.0% 的计划目标；
-生产成本 4280 美元/吨，较计划降低 1.6%，成本管控成效显著。
-年度累计铜产量 12380 吨，完成年度计划 49.1%，进度正常。<br><br>
+<b>二、年度主要考核指标完成情况</b><br>
+本月实现利润总额 <b>16820 万美元</b>，完成年度计划进度 14.0%，进度正常；净资产收益率（ROE）年化约 19.0%，超出年度目标。年度累计铜产量 12380 吨，完成年度计划 49.1%。<br><br>
 
-<b>三、财务状况分析</b><br>
-资产总计 132910 万美元，较期初增长 4.6%；资产负债率 43.4%，处于合理区间；
-货币资金 12450 万美元，流动性充足，短期偿债能力较强。<br><br>
+<b>三、阴极铜产销量情况</b><br>
+本月铜产量 <b>2086 吨</b>，完成月度计划 99.3%，环比增长 1.8%；铜销量 2140 吨，超产量 54 吨，月末铜库存 450 吨，库存结构合理。硫酸联产量 8240 吨，综合回收率 91.3%，均完成月度计划。<br><br>
 
-<b>四、存在问题与建议</b><br>
-财务费用同比上涨 14.3%，建议优化融资结构，适时置换高息负债；
-应收账款较期初增加 5.5%，需加强账款回收管理，防范坏账风险。<br><br>
+<b>四、单位生产成本情况</b><br>
+本月阴极铜单位生产成本 <b>4280 美元/吨</b>，低于计划成本 4350 美元/吨，环比下降 0.7%。直接材料占比 50.2%，电力费用占比 23.0%，为最主要成本项。矿石原料成本 5820 万美元，受矿石品位稳定影响，处理成本环比略升 2.3%。<br><br>
+
+<b>五、利润总额情况（同比分析）</b><br>
+本月利润总额 16820 万美元，同比增长 18.0%，主要驱动因素：①铜价同比上涨 6.8%，拉动收入增加 6490 万美元；②产量同比增长 3.8%，增加收入约 780 万美元；③单位成本同比下降 1.2%，节约成本约 190 万美元。<br><br>
+
+<b>六、两金情况</b><br>
+本月末两金合计 <b>28020 万美元</b>，较上月增加 620 万美元（↑2.3%）。其中：存货 15680 万美元（原料库存 12300 吨、产成品库存 450 吨）；应收账款 8320 万美元，账龄结构正常，无逾期风险。两金占流动资产比例 62.3%，处于合理范围内。<br><br>
+
+<b>七、生产经营存在的问题</b><br>
+① 财务费用同比上涨 14.3%，建议优化融资结构，适时置换高息负债；<br>
+② 电耗较上月有所下降，但仍高于行业标杆，建议深入推进节能降耗专项行动；<br>
+③ 应付账款环比增长 5.2%，需关注供应商付款节奏，维护供应链稳定；<br>
+④ 矿石库存 12300 吨，约满足 10 天生产用量，建议提前做好备料计划；<br>
+⑤ 外籍员工管理成本上升，建议加快本地化培训，提升本地员工占比。<br><br>
 
 <i style="color:#8090a8;font-size:0.80rem;">
-（以上为AI演示生成内容，正式报告将基于 NC 系统实际数据自动生成，含完整数据表格及图表）
+（以上为AI演示生成内容，正式版本将基于 NC 系统实际数据自动生成，含5张数据明细表格及图表分析）
 </i>
 </div>""", unsafe_allow_html=True)
                 else:
                     st.info(
                         "点击「AI生成报告」，系统将基于本期财务数据自动撰写完整月度财务分析报告，"
-                        "包含：总体经营情况 · 主要指标完成情况 · 财务状况分析 · "
-                        "成本费用分析 · 存在问题与建议。支持中英双语，含 5 张数据表格。"
+                        "包含：市场铜价情况 · 年度考核指标完成情况 · 阴极铜产销量情况 · "
+                        "单位生产成本情况 · 利润总额同比分析 · 两金情况 · 生产经营问题建议。"
+                        "含5张数据明细表格及图表分析，一键导出 Word/PDF。"
                     )
 
         # ── 普通报表模块（月度快报 / 基础报表 / 分析底稿）──────────
@@ -1304,14 +1427,133 @@ for mod_name, tab in zip(module_names, tabs):
                 )
 
                 # 报表数据
-                # 重要指标快报 → 大卡片网格（同比/环比突出显示）
+                ustr = "美元" if currency == "美元" else "元"
+
+                # 重要指标快报 → 8大卡片（同比/环比/完成率全展示）
                 if "指标" in selected_rpt and "快报" in selected_rpt:
                     st.markdown(render_quick_report(selected_rpt, currency), unsafe_allow_html=True)
+
+                # 生产经营月度快报 → 生产类 4 KPI卡片 + 明细表
+                elif "生产经营" in selected_rpt:
+                    st.markdown(f"""
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">铜 产 量</span><span class="kpi-unit">吨/月</span></div>
+    <div class="kpi-body"><div class="kpi-val">2086</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑1.8%&nbsp;环比</span><span class="kpi-base">月度计划&nbsp;2100</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">综合回收率</span><span class="kpi-unit">百分比</span></div>
+    <div class="kpi-body"><div class="kpi-val">91.3%</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑0.5%&nbsp;环比</span><span class="kpi-base">月度计划&nbsp;91.0%</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">处理矿石量</span><span class="kpi-unit">吨/月</span></div>
+    <div class="kpi-body"><div class="kpi-val">38400</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑1.6%&nbsp;环比</span><span class="kpi-base">月度计划&nbsp;38000</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">电    耗</span><span class="kpi-unit">度/吨铜</span></div>
+    <div class="kpi-body"><div class="kpi-val">1850</div></div>
+    <div class="kpi-foot"><span class="kpi-chg dn">↓1.1%&nbsp;环比</span><span class="kpi-base">月度计划&nbsp;1900</span></div>
+  </div>
+</div>""", unsafe_allow_html=True)
+                    df = gen_demo_df(selected_rpt, currency)
+                    st.markdown(render_finance_table(df, selected_rpt), unsafe_allow_html=True)
+
+                # 资金情况月报 → 资金类 4 KPI卡片 + 明细表
+                elif "资金情况" in selected_rpt:
+                    st.markdown(f"""
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">货 币 资 金</span><span class="kpi-unit">万{ustr}</span></div>
+    <div class="kpi-body"><div class="kpi-val">12450</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑4.6%&nbsp;环比</span><span class="kpi-base">上年同期&nbsp;11285</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">应 收 账 款</span><span class="kpi-unit">万{ustr}</span></div>
+    <div class="kpi-body"><div class="kpi-val">8320</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑3.4%&nbsp;环比</span><span class="kpi-base">上年同期&nbsp;7890</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">带 息 负 债</span><span class="kpi-unit">万{ustr}</span></div>
+    <div class="kpi-body"><div class="kpi-val">7200</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑2.9%&nbsp;环比</span><span class="kpi-base">上年同期&nbsp;6800</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">资产负债率</span><span class="kpi-unit">百分比</span></div>
+    <div class="kpi-body"><div class="kpi-val">43.4%</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑0.6pp&nbsp;环比</span><span class="kpi-base">上年同期&nbsp;41.9%</span></div>
+  </div>
+</div>""", unsafe_allow_html=True)
+                    df = gen_demo_df(selected_rpt, currency)
+                    st.markdown(render_finance_table(df, selected_rpt), unsafe_allow_html=True)
+
+                # 产销存快报 → 产销库存类 4 KPI卡片 + 明细表
+                elif "产销存" in selected_rpt:
+                    st.markdown(f"""
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">铜 产 量</span><span class="kpi-unit">吨/月</span></div>
+    <div class="kpi-body"><div class="kpi-val">2086</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑1.8%&nbsp;环比</span><span class="kpi-base">本年累计&nbsp;12380</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">铜 销 量</span><span class="kpi-unit">吨/月</span></div>
+    <div class="kpi-body"><div class="kpi-val">2140</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑2.1%&nbsp;环比</span><span class="kpi-base">本年累计&nbsp;12590</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">铜 库 存</span><span class="kpi-unit">吨</span></div>
+    <div class="kpi-body"><div class="kpi-val">450</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑11.4%&nbsp;环比</span><span class="kpi-base">上月库存&nbsp;404</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">铜 均 价</span><span class="kpi-unit">美元/吨</span></div>
+    <div class="kpi-body"><div class="kpi-val">9500</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑0.4%&nbsp;环比</span><span class="kpi-base">年度计划&nbsp;9500</span></div>
+  </div>
+</div>""", unsafe_allow_html=True)
+                    df = gen_demo_df(selected_rpt, currency)
+                    st.markdown(render_finance_table(df, selected_rpt), unsafe_allow_html=True)
+
+                # 成本费用快报 → 成本类 4 KPI卡片 + 明细表
+                elif "成本费用" in selected_rpt:
+                    st.markdown(f"""
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">单位生产成本</span><span class="kpi-unit">美元/吨铜</span></div>
+    <div class="kpi-body"><div class="kpi-val">4280</div></div>
+    <div class="kpi-foot"><span class="kpi-chg dn">↓0.7%&nbsp;环比</span><span class="kpi-base">月度计划&nbsp;4350</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">生产成本合计</span><span class="kpi-unit">万{ustr}</span></div>
+    <div class="kpi-body"><div class="kpi-val">16064</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑1.6%&nbsp;环比</span><span class="kpi-base">上月实际&nbsp;15818</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">毛 利 率</span><span class="kpi-unit">百分比</span></div>
+    <div class="kpi-body"><div class="kpi-val">27.2%</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑1.5pp&nbsp;同比</span><span class="kpi-base">上年同期&nbsp;25.7%</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">电力费占比</span><span class="kpi-unit">百分比</span></div>
+    <div class="kpi-body"><div class="kpi-val">23.0%</div></div>
+    <div class="kpi-foot"><span class="kpi-chg dn">↓0.1pp&nbsp;环比</span><span class="kpi-base">上月实际&nbsp;23.1%</span></div>
+  </div>
+</div>""", unsafe_allow_html=True)
+                    df = gen_demo_df(selected_rpt, currency)
+                    st.markdown(render_finance_table(df, selected_rpt), unsafe_allow_html=True)
+
+                # 人力资源快报 / 环保安全快报 → 仅明细表，无 KPI 卡片
+                elif "人力资源" in selected_rpt or "环保安全" in selected_rpt:
+                    df = gen_demo_df(selected_rpt, currency)
+                    st.markdown(render_finance_table(df, selected_rpt), unsafe_allow_html=True)
+
+                # 分析底稿 + 其他分析类 / 基础报表 → 财务摘要 4 KPI卡片（仅分析类）+ 表格
                 else:
-                    # 其他快报/分析类：顶部 4 个摘要 KPI 卡片
-                    kpi_keywords = ["快报", "同比", "环比", "分析", "底稿"]
-                    if any(k in selected_rpt for k in kpi_keywords):
-                        ustr = "美元" if currency == "美元" else "元"
+                    analysis_keywords = ["同比", "环比", "分析", "底稿"]
+                    if any(k in selected_rpt for k in analysis_keywords):
                         st.markdown(f"""
 <div class="kpi-grid">
   <div class="kpi-card">
