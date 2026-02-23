@@ -543,18 +543,44 @@ html, body, [data-testid="stApp"] {
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-/* ── 左侧报表导航 ── */
+/* ── 左侧报表导航 — 自定义 LED 指示灯 ── */
 div[data-testid="stRadio"] > div { gap: 0 !important; }
+
+/* 隐藏 BaseWeb 原生圆圈区域 */
+div[data-testid="stRadio"] label > div:first-child { display: none !important; }
+
+/* 每一行：flex 横排，圆点 + 文字对齐 */
 div[data-testid="stRadio"] label {
-    padding: 5px 10px !important; border-radius: 4px !important;
-    font-size: 0.83rem !important; color: #2c3e50 !important;
-    margin-bottom: 1px !important; border-left: 3px solid transparent !important;
-    display: block !important;
+    display: flex !important; align-items: center !important;
+    padding: 6px 10px 6px 8px !important; border-radius: 4px !important;
+    font-size: 0.83rem !important; color: #4a5870 !important;
+    margin-bottom: 2px !important; border-left: 3px solid transparent !important;
+    cursor: pointer !important; transition: background 0.15s, color 0.15s !important;
 }
-div[data-testid="stRadio"] label:hover { background: #e8f0fa !important; }
+
+/* 指示灯圆点（默认灰色）*/
+div[data-testid="stRadio"] label::before {
+    content: "" !important;
+    display: inline-block !important; flex-shrink: 0 !important;
+    width: 7px !important; height: 7px !important; border-radius: 50% !important;
+    background: #c0cfe0 !important; margin-right: 9px !important;
+    transition: background 0.2s, box-shadow 0.2s !important;
+}
+
+/* 悬浮 */
+div[data-testid="stRadio"] label:hover { background: #e8f0fa !important; color: #0c3060 !important; }
+div[data-testid="stRadio"] label:hover::before { background: #90b8e0 !important; }
+
+/* 选中 — 蓝色左边框 + 浅蓝背景 + 绿色 LED 灯亮起 */
+div[data-testid="stRadio"] label:has(input:checked),
 div[data-testid="stRadio"] label[data-checked="true"] {
     background: #dbeafe !important; border-left-color: #1255a8 !important;
     color: #0c3060 !important; font-weight: 600 !important;
+}
+div[data-testid="stRadio"] label:has(input:checked)::before,
+div[data-testid="stRadio"] label[data-checked="true"]::before {
+    background: #22c55e !important;
+    box-shadow: 0 0 0 2px rgba(34,197,94,0.20), 0 0 7px rgba(34,197,94,0.55) !important;
 }
 
 /* ── 报表标题区 ── */
