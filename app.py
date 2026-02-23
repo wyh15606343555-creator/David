@@ -735,19 +735,35 @@ div[data-testid="stRadio"] label[data-checked="true"]::before {
 .badge-ok   { background: #d1fae5; color: #065f46; }
 .badge-wait { background: #fef3c7; color: #92400e; }
 
-/* ── KPI 卡片 ── */
-.kpi-grid { display: flex; gap: 0.65rem; margin: 0.75rem 0 0.9rem; }
+/* ── KPI 摘要卡片（三段式） ── */
+.kpi-grid { display: flex; gap: 0.7rem; margin: 0.75rem 0 0.9rem; }
 .kpi-card {
-    flex: 1; background: #fff; border: 1px solid #cdd8eb;
-    border-top: 3px solid #1255a8; border-radius: 6px;
-    padding: 0.65rem 0.85rem; text-align: center;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    flex: 1; background: #fff;
+    border: 1px solid #c8d8ec; border-radius: 7px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(8,28,56,0.07);
 }
-.kpi-v { font-size: 1.45rem; font-weight: 700; color: #081c38; line-height: 1.2; }
-.kpi-l { font-size: 0.70rem; color: #6b7a8d; margin-top: 2px; }
-.kpi-c { margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 5px; }
-.kpi-pct { font-size: 1.1rem; font-weight: 700; }
-.kpi-tag { font-size: 0.68rem; color: #6b7a8d; background: #edf2fa; padding: 1px 6px; border-radius: 3px; }
+/* 顶部：指标名 + 单位 */
+.kpi-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 12px;
+    background: linear-gradient(135deg,#eef4fb 0%,#ddeeff 100%);
+    border-bottom: 1px solid #c8d8ec;
+}
+.kpi-name { font-size: 0.77rem; font-weight: 700; color: #0c3060; letter-spacing: 0.04em; }
+.kpi-unit { font-size: 0.67rem; color: #607898; background: #fff; padding: 1px 6px; border-radius: 3px; border: 1px solid #c8d8ec; }
+/* 中部：大数值 */
+.kpi-body { padding: 11px 12px 9px; text-align: center; }
+.kpi-val  { font-size: 1.7rem; font-weight: 700; color: #081c38; line-height: 1.1; }
+/* 底部：同比变动 + 对比基数 */
+.kpi-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 12px 7px;
+    border-top: 1px solid #e8eef8;
+    background: #f8fafd;
+}
+.kpi-chg  { font-size: 1.02rem; font-weight: 700; }
+.kpi-base { font-size: 0.67rem; color: #8090a8; }
 .up { color: #059669; } .dn { color: #dc2626; }
 
 /* ── 工具栏区 ── */
@@ -1254,10 +1270,26 @@ for mod_name, tab in zip(module_names, tabs):
                         ustr = "美元" if currency == "美元" else "元"
                         st.markdown(f"""
 <div class="kpi-grid">
-  <div class="kpi-card"><div class="kpi-v">14297</div><div class="kpi-l">净利润（万{ustr}）</div><div class="kpi-c up"><span class="kpi-pct">↑18.0%</span><span class="kpi-tag">同比</span></div></div>
-  <div class="kpi-card"><div class="kpi-v">85420</div><div class="kpi-l">营业收入（万{ustr}）</div><div class="kpi-c up"><span class="kpi-pct">↑8.2%</span><span class="kpi-tag">同比</span></div></div>
-  <div class="kpi-card"><div class="kpi-v">27.2%</div><div class="kpi-l">毛  利  率</div><div class="kpi-c up"><span class="kpi-pct">↑1.5pp</span><span class="kpi-tag">同比</span></div></div>
-  <div class="kpi-card"><div class="kpi-v">2,086t</div><div class="kpi-l">铜产量（本月）</div><div class="kpi-c up"><span class="kpi-pct">↑1.8%</span><span class="kpi-tag">环比</span></div></div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">净 利 润</span><span class="kpi-unit">万{ustr}</span></div>
+    <div class="kpi-body"><div class="kpi-val">14297</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑18.0%&nbsp;同比</span><span class="kpi-base">上年同期&nbsp;12112</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">营业收入</span><span class="kpi-unit">万{ustr}</span></div>
+    <div class="kpi-body"><div class="kpi-val">85420</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑8.2%&nbsp;同比</span><span class="kpi-base">上年同期&nbsp;78930</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">毛 利 率</span><span class="kpi-unit">百分比</span></div>
+    <div class="kpi-body"><div class="kpi-val">27.2%</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑1.5pp&nbsp;同比</span><span class="kpi-base">上年同期&nbsp;25.7%</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-head"><span class="kpi-name">铜 产 量</span><span class="kpi-unit">吨/月</span></div>
+    <div class="kpi-body"><div class="kpi-val">2086</div></div>
+    <div class="kpi-foot"><span class="kpi-chg up">↑1.8%&nbsp;环比</span><span class="kpi-base">上月实际&nbsp;2050</span></div>
+  </div>
 </div>""", unsafe_allow_html=True)
                     df = gen_demo_df(selected_rpt, currency)
                     st.markdown(render_finance_table(df, selected_rpt), unsafe_allow_html=True)
