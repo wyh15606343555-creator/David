@@ -50,8 +50,8 @@ def format_cell(x):
         return ""
     if isinstance(x, (int, float)):
         if float(x) == int(x):
-            return f"{int(x):,d}"
-        return f"{x:,.2f}"
+            return f"{int(x)}"
+        return f"{x:.2f}"
     if isinstance(x, str):
         s = x.strip()
         if not s:
@@ -59,8 +59,8 @@ def format_cell(x):
         try:
             num = float(s)
             if num == int(num):
-                return f"{int(num):,d}"
-            return f"{num:,.2f}"
+                return f"{int(num)}"
+            return f"{num:.2f}"
         except (ValueError, OverflowError):
             pass
     return str(x)
