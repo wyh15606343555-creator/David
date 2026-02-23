@@ -745,7 +745,9 @@ div[data-testid="stRadio"] label[data-checked="true"]::before {
 }
 .kpi-v { font-size: 1.45rem; font-weight: 700; color: #081c38; line-height: 1.2; }
 .kpi-l { font-size: 0.70rem; color: #6b7a8d; margin-top: 2px; }
-.kpi-c { font-size: 0.70rem; margin-top: 4px; }
+.kpi-c { margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.kpi-pct { font-size: 1.1rem; font-weight: 700; }
+.kpi-tag { font-size: 0.68rem; color: #6b7a8d; background: #edf2fa; padding: 1px 6px; border-radius: 3px; }
 .up { color: #059669; } .dn { color: #dc2626; }
 
 /* ── 工具栏区 ── */
@@ -1252,10 +1254,10 @@ for mod_name, tab in zip(module_names, tabs):
                         ustr = "美元" if currency == "美元" else "元"
                         st.markdown(f"""
 <div class="kpi-grid">
-  <div class="kpi-card"><div class="kpi-v">14,297</div><div class="kpi-l">净利润（万{ustr}）</div><div class="kpi-c up">↑18.0% 同比</div></div>
-  <div class="kpi-card"><div class="kpi-v">85,420</div><div class="kpi-l">营业收入（万{ustr}）</div><div class="kpi-c up">↑8.2% 同比</div></div>
-  <div class="kpi-card"><div class="kpi-v">27.2%</div><div class="kpi-l">毛  利  率</div><div class="kpi-c up">↑1.5pp 同比</div></div>
-  <div class="kpi-card"><div class="kpi-v">2,086t</div><div class="kpi-l">铜产量（本月）</div><div class="kpi-c up">↑1.8% 环比</div></div>
+  <div class="kpi-card"><div class="kpi-v">14,297</div><div class="kpi-l">净利润（万{ustr}）</div><div class="kpi-c up"><span class="kpi-pct">↑18.0%</span><span class="kpi-tag">同比</span></div></div>
+  <div class="kpi-card"><div class="kpi-v">85,420</div><div class="kpi-l">营业收入（万{ustr}）</div><div class="kpi-c up"><span class="kpi-pct">↑8.2%</span><span class="kpi-tag">同比</span></div></div>
+  <div class="kpi-card"><div class="kpi-v">27.2%</div><div class="kpi-l">毛  利  率</div><div class="kpi-c up"><span class="kpi-pct">↑1.5pp</span><span class="kpi-tag">同比</span></div></div>
+  <div class="kpi-card"><div class="kpi-v">2,086t</div><div class="kpi-l">铜产量（本月）</div><div class="kpi-c up"><span class="kpi-pct">↑1.8%</span><span class="kpi-tag">环比</span></div></div>
 </div>""", unsafe_allow_html=True)
                     df = gen_demo_df(selected_rpt, currency)
                     st.markdown(render_finance_table(df, selected_rpt), unsafe_allow_html=True)
