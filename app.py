@@ -938,7 +938,7 @@ with hc1:
     st.markdown("""
     <div class="app-header">
         <div>
-            <h2>AI 财务报表智能生成平台</h2>
+            <h2><span style="background:rgba(74,222,128,0.18);color:#4ade80;border:1px solid rgba(74,222,128,0.45);padding:2px 8px;border-radius:4px;font-size:0.82em;letter-spacing:0.10em;vertical-align:middle;margin-right:6px">AI</span>财务报表智能生成平台</h2>
             <div class="sub">中色华鑫马本德矿业有限公司 &nbsp;·&nbsp; FINANCIAL INTELLIGENCE PLATFORM</div>
         </div>
         <div class="right">
