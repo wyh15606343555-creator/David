@@ -1235,7 +1235,7 @@ for mod_name, tab in zip(module_names, tabs):
                     'padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;gap:6px;">',
                     unsafe_allow_html=True,
                 )
-                tc1, tc2, tc3, tsp1, tc4, tc5 = st.columns([1.35, 1.75, 1.95, 0.08, 1.35, 1.35])
+                tc1, tc2, tc3, tsp1, tc4, tc5 = st.columns([1.75, 1.75, 1.75, 0.08, 1.3, 1.3])
                 with tc1:
                     run_single = st.button(
                         "▶  运算当前", key=f"rs_{r_key}", use_container_width=True, type="primary",
